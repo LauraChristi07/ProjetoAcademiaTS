@@ -1,0 +1,53 @@
+import type { Tarefa } from "./tipos";
+export const tarefas: Tarefa[] = [
+  {
+    id: 1,
+    titulo: "Agachamento livre",
+    descricao: "PR #42",
+    prioridade: "medio",
+    status: "planejado",
+    tags: ["agachar", "quadriceps"],
+    criadaEm: new Date(),
+  },
+  {
+    id: 2,
+    titulo: "Stiff",
+    prioridade: "facil",
+    status: "pulado",
+    tags: ["gluteos", "posterior"],
+    criadaEm: new Date(),
+  },
+  {
+    id: 3,
+    titulo: "Agachamento bulgaro",
+    descricao: "PR #42",
+    prioridade: "medio",
+    status: "feito",
+    tags: ["agachar", "quadriceps"],
+    criadaEm: new Date(),
+  },
+  {
+    id: 4,
+    titulo: "Corrida",
+    prioridade: "facil",
+    status: "planejado",
+    tags: ["cardio", "saúde"],
+    criadaEm: new Date(),
+  },
+  {
+    id: 5,
+    titulo: "Leg press inclinado",
+    prioridade: "medio",
+    status: "planejado",
+    tags: ["quadriceps", "panturrilha"],
+    criadaEm: new Date(),
+  },
+  {
+    id: 6,
+    titulo: "Cadeira extensora",
+    prioridade: "dificil",
+    status: "planejado",
+    tags: ["quadriceps", "panturrilha"],
+    criadaEm: new Date(),
+  },
+];
