@@ -40,10 +40,10 @@ for (const tarefa of tarefas) {
   lista.append(item); // Adiciona o item completo à lista exibida na página.
 }
 
-// LAÇO 2 — for com índice: contando as pendentes
+// LAÇO 2 — for com índice: contando os treinos que ainda não foram feitos
 let pendentes = 0;
 for (let i = 0; i < tarefas.length; i++) {
-  if (tarefas[i].status === "planejado") {
+  if (tarefas[i].status !== "feito") {
     pendentes++;
   }
 }
