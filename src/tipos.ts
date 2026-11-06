@@ -1,12 +1,12 @@
-export type Prioridade = "facil" | "medio" | "dificil";
+export type Nivel = "facil" | "medio" | "dificil";
 export type Status = "planejado" | "feito" | "pulado";
 export interface Tarefa {
   readonly id: number;
   titulo: string;
   descricao?: string;
-  prioridade: Prioridade;
+  nivel: Nivel;
   status: Status;
-  tags: string[];
+  exercicios: string[];
   criadaEm: Date;
 }
 // O que o usuário informa ao cadastrar:

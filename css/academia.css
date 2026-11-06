@@ -21,7 +21,7 @@ main, .entrada { max-width: 880px; margin: 24px auto; padding: 0 16px; }
   border: 1px solid var(--borda); border-radius: 10px; padding: 16px; }
 .entrada .formulario { flex-direction: column; align-items: stretch; }
 .entrada .campo { flex: none; }
-.formulario h2 { margin: 0; font-size: 1.2rem; }
+.formulario h2 { margin: 0; font-size: 1.2rem; text-align: center; }
 .campo { display: grid; gap: 4px; flex: 1 1 160px; }
 .campo__rotulo { font-size: .85rem; color: var(--suave); }
 .campo__entrada, .campo__selecao, .busca { padding: 8px 10px; border: 1px solid var(--borda); border-radius: 6px;
@@ -35,7 +35,15 @@ main, .entrada { max-width: 880px; margin: 24px auto; padding: 0 16px; }
 .botao--perigo { border-color: var(--difícil); color: var(--difícil); }
 .aviso { background: #fff6d6; color: #5c4600; border-left: 4px solid var(--amarelo); padding: 10px 14px; border-radius: 6px; }
 .aviso--oculto { display: none; }
-.estatisticas { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.estatisticas {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, 200px); /* Cria duas colunas de 200px. */
+  justify-content: center; /* Centraliza os dois cartões na página. */
+  gap: 12px; /* Espaçamento entre os cartões. */
+  margin: 16px auto; /* Centraliza o painel e adiciona margem. */
+}
 .estatistica { background: var(--cartao); border: 1px solid var(--borda); border-radius: 10px; padding: 12px; text-align: center; }
 .estatistica__numero { display: block; font-size: 1.8rem; font-weight: 700; color: var(--azul); }
 .estatistica__rotulo { font-size: .85rem; color: var(--suave); }
@@ -44,8 +52,25 @@ main, .entrada { max-width: 880px; margin: 24px auto; padding: 0 16px; }
 .filtro { padding: 6px 12px; border-radius: 999px; border: 1px solid var(--borda); background: var(--cartao); color: var(--texto); cursor: pointer; }
 .filtro--ativo { background: var(--azul); color: #fff; border-color: var(--azul); }
 .lista { list-style: none; padding: 0; display: grid; gap: 10px; }
-.tarefa { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; background: var(--cartao);
-  border: 1px solid var(--borda); border-left: 6px solid var(--medio); border-radius: 10px; padding: 12px 16px; }
+.tarefa {   /* Isso evita que os parágrafos tenham espaçamentos diferentes. */
+  display: grid;
+  grid-template-columns: 220px 130px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  background: var(--cartao);
+  border: 1px solid var(--borda);
+  border-left: 6px solid var(--medio);
+  border-radius: 10px;
+  padding: 12px 16px;
+}
+.tarefa__titulo {      /* Isso evita que os parágrafos tenham espaçamentos diferentes. */
+  margin: 0;
+  font-size: 1.05rem;
+} 
+
+.tarefa p {
+  margin: 0;
+}
 .tarefa--dificil { border-left-color: var(--dificil); }
 .tarefa--medio { border-left-color: var(--medio); }
 .tarefa--facil { border-left-color: var(--facil); }
@@ -62,3 +87,8 @@ main, .entrada { max-width: 880px; margin: 24px auto; padding: 0 16px; }
 .tarefa__principal { flex: 1 1 260px; min-width: 0; }
 .vazio { text-align: center; color: var(--suave); }
 @media (max-width: 600px) { .estatisticas { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 600px) { /*Isso permite que as informações se reorganizem em telas menores.*/
+  .tarefa {
+    grid-template-columns: 1fr auto;
+  }
+}
