@@ -52,16 +52,22 @@ main, .entrada { max-width: 880px; margin: 24px auto; padding: 0 16px; }
 .filtro { padding: 6px 12px; border-radius: 999px; border: 1px solid var(--borda); background: var(--cartao); color: var(--texto); cursor: pointer; }
 .filtro--ativo { background: var(--azul); color: #fff; border-color: var(--azul); }
 .lista { list-style: none; padding: 0; display: grid; gap: 10px; }
-.tarefa {   /* Isso evita que os parágrafos tenham espaçamentos diferentes. */
+.tarefa {
   display: grid;
-  grid-template-columns: 220px 130px minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
   background: var(--cartao);
   border: 1px solid var(--borda);
   border-left: 6px solid var(--medio);
   border-radius: 10px;
   padding: 12px 16px;
+}
+/* Mantém o nível no final do cartão */
+.tarefa .etiqueta {
+  justify-self: end;
+  min-width: 100px;
+  text-align: center;
 }
 .tarefa__titulo {      /* Isso evita que os parágrafos tenham espaçamentos diferentes. */
   margin: 0;
