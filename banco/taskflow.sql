@@ -51,5 +51,5 @@ INSERT INTO usuarios (nome, email, senha_hash) VALUES
 ('Ana', 'ana@email.com', 'ABCD1234');
 
 INSERT INTO tarefas (usuario_id, titulo, prioridade, status) VALUES
-(1, 'Treino cardio', 'dificil', 'feito'),
+(1, 'Treino cardio', 'dificil', 'feito');
 
