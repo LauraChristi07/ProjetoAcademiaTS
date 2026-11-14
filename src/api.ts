@@ -3,7 +3,7 @@ import type { Tarefa } from "./tipos";
 export async function listarTarefas(): Promise<Tarefa[]> {
 const resposta = await fetch("/api/tarefas");
 if (!resposta.ok) {
-throw new Error("Não foi possível carregar as tarefas. A API está rodando?");
+throw new Error("Não foi possível carregar as tarefas. A API está rodando? Abriu o localhost:3000?");
 }
 const bruto = (await resposta.json()) as Tarefa[];
 // JSON não tem data: criadaEm chega como texto e precisa virar Date
@@ -14,7 +14,6 @@ export async function buscarTarefa(id: number): Promise<Tarefa | undefined> {
 const resposta = await fetch(`/api/tarefas/${id}`);
 if (resposta.status === 404) {
 return undefined;
-11
 }
 if (!resposta.ok) {
 throw new Error(`Erro ${resposta.status} ao buscar a tarefa #${id}.`);
