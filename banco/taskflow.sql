@@ -18,7 +18,7 @@ CREATE TABLE tarefas (
     usuario_id INT UNSIGNED NOT NULL,
     titulo VARCHAR(120) NOT NULL,
     descricao TEXT NULL,
-    prioridade ENUM('facil', 'medio', 'dificil') NOT NULL DEFAULT 'medio',
+    nivel ENUM('facil', 'medio', 'dificil') NOT NULL DEFAULT 'medio',
     status ENUM('planejado', 'feito', 'pulado') NOT NULL DEFAULT 'planejado',
     prazo DATE NULL,
     criada_em DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -46,10 +46,68 @@ CREATE TABLE tarefa_exercicio (
     CONSTRAINT fk_tarefa_exercicio_exercicio FOREIGN KEY (exercicio_id) REFERENCES exercicios (id) ON DELETE CASCADE
 );
 
+USE academia;
 
+-- 0) Limpar os registros anteriores
+SET FOREIGN_KEY_CHECKS = 0;
+
+DELETE FROM tarefa_exercicio;
+DELETE FROM tarefas;
+DELETE FROM exercicios;
+DELETE FROM usuarios;
+
+-- Reiniciar os IDs
+ALTER TABLE tarefas AUTO_INCREMENT = 1;
+ALTER TABLE exercicios AUTO_INCREMENT = 1;
+ALTER TABLE usuarios AUTO_INCREMENT = 1;
+
+SET FOREIGN_KEY_CHECKS = 1;
+
+-- 1) Usuários
 INSERT INTO usuarios (nome, email, senha_hash) VALUES
-('Ana', 'ana@email.com', 'ABCD1234');
+('Ana', 'ana@email.com', 'ABCD1234'),
+('Bruno', 'bruno@email.com', 'EFGH5678'),
+('Carla', 'carla@email.com', 'IJKL9012');
 
-INSERT INTO tarefas (usuario_id, titulo, prioridade, status) VALUES
-(1, 'Treino cardio', 'dificil', 'feito'),
+-- 2) Exercícios
+INSERT INTO exercicios (usuario_id, nome) VALUES
+(1, 'Agachamento livre'),
+(1, 'Leg press'),
+(1, 'Cadeira extensora'),
 
+(2, 'Stiff'),
+(2, 'Agachamento búlgaro'),
+(2, 'Elevação pélvica'),
+
+(3, 'Corrida'),
+(3, 'Bicicleta'),
+(3, 'Esteira'),
+
+(1, 'Rosca direta'),
+(1, 'Tríceps com barra'),
+(1, 'Rosca martelo'),
+
+(2, 'Supino'),
+(2, 'Crucifixo'),
+(2, 'Pullover'),
+
+(3, 'Remada curvada'),
+(3, 'Remada baixa'),
+(3, 'Puxada alta');
+
+-- 3) Treinos
+INSERT INTO tarefas (usuario_id, titulo, descricao, nivel, status, prazo) VALUES
+(1, 'Treino de pernas', 'PR #42', 'medio', 'pulado', NULL),
+(2, 'Treino de glúteos', NULL, 'facil', 'pulado', NULL),
+(3, 'Treino de cardio', 'PR #42', 'medio', 'feito', NULL);
+
+-- 4) Ligação treino ↔ exercício
+INSERT INTO tarefa_exercicio (tarefa_id, exercicio_id) VALUES
+(1, 1),
+(2, 2),
+(3, 3);
+
+SELECT * FROM tarefas;
+SELECT * FROM exercicios;
+SELECT * FROM tarefa_exercicio;
+SELECT * FROM usuarios;
