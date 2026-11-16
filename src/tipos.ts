@@ -1,5 +1,6 @@
 export type Nivel = "facil" | "medio" | "dificil";
 export type Status = "planejado" | "feito" | "pulado";
+
 export interface Tarefa {
   readonly id: number;
   titulo: string;
