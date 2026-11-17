@@ -1,13 +1,14 @@
 import "dotenv/config"; // primeira linha: carrega o .env antes de tudo
+import bcrypt from "bcryptjs";
 import express, { type NextFunction, type Request, type Response } from "express";
+import jwt from "jsonwebtoken";
 import type { ResultSetHeader, RowDataPacket } from "mysql2";
+import { exigirLogin, SEGREDO, usuarioDe } from "./autenticacao";
 import { banco } from "./banco";
 import { NIVEIS, STATUS, type DadosTarefa, type Status } from "./tipos";
 
 const app = express();
 app.use(express.json());
-
-const USUARIO_FIXO = 1; // até a Aula 5, todo mundo é o Marcelo
 
 const SELECT_TAREFAS = `
   SELECT id, titulo, descricao, nivel, status,
@@ -15,13 +16,13 @@ const SELECT_TAREFAS = `
          criada_em AS criadaEm
     FROM tarefas`;
 
-// Busca uma tarefa pelo id. Usada pelo GET e depois de cada INSERT.
-async function buscarUma(id: number): Promise<RowDataPacket | undefined> {
+// Busca uma tarefa pelo id — e SÓ se for do usuário informado
+async function buscarUma(id: number, usuarioId: number): Promise<RowDataPacket | undefined> {
   const [linhas] = await banco.execute<RowDataPacket[]>(
     `${SELECT_TAREFAS} WHERE id = ? AND usuario_id = ?`,
-    [id, USUARIO_FIXO]
+    [id, usuarioId]
   );
-  return linhas.length > 0 ? { ...linhas[0], tags: [] } : undefined;
+  return linhas.length > 0 ? { ...linhas[0], exercicios: [] } : undefined;
 }
 
 // Devolve a mensagem de erro, ou undefined se estiver tudo certo
@@ -35,16 +36,17 @@ function validar(dados: DadosTarefa): string | undefined {
   return undefined;
 }
 
-// ---------- LER (Aula 3) ----------
-app.get("/api/tarefas", async (_req, res) => {
+// ---------- LER ----------
+app.get("/api/tarefas", exigirLogin, async (_req, res) => {
   const [linhas] = await banco.execute<RowDataPacket[]>(
-    `${SELECT_TAREFAS} ORDER BY id`
+    `${SELECT_TAREFAS} WHERE usuario_id = ? ORDER BY id`,
+    [usuarioDe(res)]
   );
-  res.json(linhas.map((linha) => ({ ...linha, tags: [] })));
+  res.json(linhas.map((linha) => ({ ...linha, exercicios: [] })));
 });
 
-app.get("/api/tarefas/:id", async (req, res) => {
-  const tarefa = await buscarUma(Number(req.params.id));
+app.get("/api/tarefas/:id", exigirLogin, async (req, res) => {
+  const tarefa = await buscarUma(Number(req.params.id), usuarioDe(res));
   if (!tarefa) {
     res.status(404).json({ erro: `Tarefa #${req.params.id} não encontrada.` });
     return;
@@ -53,30 +55,29 @@ app.get("/api/tarefas/:id", async (req, res) => {
 });
 
 // ---------- CRIAR ----------
-app.post("/api/tarefas", async (req, res) => {
+app.post("/api/tarefas", exigirLogin, async (req, res) => {
   const dados = req.body as DadosTarefa;
   const problema = validar(dados);
   if (problema) {
-    res.status(400).json({ erro: problema }); // 400: o pedido veio errado
+    res.status(400).json({ erro: problema });
     return;
   }
   const [resultado] = await banco.execute<ResultSetHeader>(
     `INSERT INTO tarefas (usuario_id, titulo, descricao, nivel, prazo)
      VALUES (?, ?, ?, ?, ?)`,
     [
-      USUARIO_FIXO,
+      usuarioDe(res),
       dados.titulo!.trim(),
       dados.descricao ?? null,
       dados.nivel ?? "medio",
       dados.prazo || null,
     ]
   );
-  // 201: criado. Devolve a tarefa como o banco a guardou (com id e data)
-  res.status(201).json(await buscarUma(resultado.insertId));
+  res.status(201).json(await buscarUma(resultado.insertId, usuarioDe(res)));
 });
 
 // ---------- ATUALIZAR (só o status) ----------
-app.patch("/api/tarefas/:id/status", async (req, res) => {
+app.patch("/api/tarefas/:id/status", exigirLogin, async (req, res) => {
   const { status } = req.body as { status?: Status };
   if (!status || !STATUS.includes(status)) {
     res.status(400).json({ erro: "Status inválido." });
@@ -84,22 +85,9 @@ app.patch("/api/tarefas/:id/status", async (req, res) => {
   }
   const [resultado] = await banco.execute<ResultSetHeader>(
     `UPDATE tarefas
-        SET status = ?, concluida_em = IF(? = 'feito', NOW(), NULL)
+        SET status = ?, feito = IF(? = 'feito', NOW(), NULL)
       WHERE id = ? AND usuario_id = ?`,
-    [status, status, Number(req.params.id), USUARIO_FIXO]
-  );
-  if (resultado.affectedRows === 0) {
-    res.status(404).json({ erro: `Tarefa #${req.params.id} não encontrada.` });
-    return;
-  }
-  res.status(204).end(); // 204: deu certo, e não há nada para devolver
-});
-
-// ---------- APAGAR ----------
-app.delete("/api/tarefas/:id", async (req, res) => {
-  const [resultado] = await banco.execute<ResultSetHeader>(
-    "DELETE FROM tarefas WHERE id = ? AND usuario_id = ?",
-    [Number(req.params.id), USUARIO_FIXO]
+    [status, status, Number(req.params.id), usuarioDe(res)]
   );
   if (resultado.affectedRows === 0) {
     res.status(404).json({ erro: `Tarefa #${req.params.id} não encontrada.` });
@@ -108,10 +96,65 @@ app.delete("/api/tarefas/:id", async (req, res) => {
   res.status(204).end();
 });
 
+// ---------- APAGAR ----------
+app.delete("/api/tarefas/:id", exigirLogin, async (req, res) => {
+  const [resultado] = await banco.execute<ResultSetHeader>(
+    "DELETE FROM tarefas WHERE id = ? AND usuario_id = ?",
+    [Number(req.params.id), usuarioDe(res)]
+  );
+  if (resultado.affectedRows === 0) {
+    res.status(404).json({ erro: `Tarefa #${req.params.id} não encontrada.` });
+    return;
+  }
+  res.status(204).end();
+});
+
+// ---------- USUÁRIOS (Aula 5) ----------
+app.post("/api/usuarios", async (req, res) => {
+  const { nome, email, senha } = req.body as { nome?: string; email?: string; senha?: string };
+  if (!nome?.trim() || !email?.includes("@") || !senha || senha.length < 6) {
+    res.status(400).json({
+      erro: "Preencha nome, e-mail válido e senha de 6 caracteres ou mais.",
+    });
+    return;
+  }
+  const hash = await bcrypt.hash(senha, 10); // a senha nunca vai para o banco
+  try {
+    const [resultado] = await banco.execute<ResultSetHeader>(
+      "INSERT INTO usuarios (nome, email, senha_hash) VALUES (?, ?, ?)",
+      [nome.trim(), email.trim().toLowerCase(), hash]
+    );
+    res.status(201).json({ id: resultado.insertId });
+  } catch (erro) {
+    // quem descobre o e-mail repetido é o UNIQUE do banco
+    if ((erro as { code?: string }).code === "ER_DUP_ENTRY") {
+      res.status(409).json({ erro: "Este e-mail já está cadastrado." });
+      return;
+    }
+    throw erro;
+  }
+});
+
+app.post("/api/login", async (req, res) => {
+  const { email, senha } = req.body as { email?: string; senha?: string };
+  const [linhas] = await banco.execute<RowDataPacket[]>(
+    "SELECT id, nome, senha_hash FROM usuarios WHERE email = ?",
+    [email?.trim().toLowerCase() ?? ""]
+  );
+  const usuario = linhas[0];
+  if (!usuario || !senha || !(await bcrypt.compare(senha, usuario.senha_hash))) {
+    // a mesma mensagem nos dois casos: não contamos qual dos dois errou
+    res.status(401).json({ erro: "E-mail ou senha inválidos." });
+    return;
+  }
+  const token = jwt.sign({ id: usuario.id }, SEGREDO, { expiresIn: "8h" });
+  res.json({ token, nome: usuario.nome });
+});
+
 // ---------- ERROS NÃO PREVISTOS: sempre depois de todas as rotas ----------
 app.use((erro: unknown, _req: Request, res: Response, _next: NextFunction) => {
-  console.error(erro); // o detalhe técnico fica só no terminal
+  console.error(erro);
   res.status(500).json({ erro: "Algo deu errado no servidor. Tente de novo." });
 });
 
-app.listen(3000, () => console.log("API da Academia em http://localhost:3000"));
+app.listen(3000, () => console.log("API do TaskFlow em http://localhost:3000"));
