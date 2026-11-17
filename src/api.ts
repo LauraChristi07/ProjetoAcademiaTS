@@ -1,16 +1,45 @@
-import type { NovaTarefa, Status, Tarefa } from "./tipos";
+import type { Contagem, NovaTarefa, Sessao, Status, Tarefa } from "./tipos";
 
-// A ajudante que todas as chamadas usam: monta o pedido e trata o erro
+const CHAVE_SESSAO = "Academia:sessao";
+
+// ---------- A sessão: o "crachá" guardado no navegador ----------
+export function sessaoAtual(): Sessao | undefined {
+  const texto = localStorage.getItem(CHAVE_SESSAO);
+  return texto ? (JSON.parse(texto) as Sessao) : undefined;
+}
+
+export function guardarSessao(sessao: Sessao): void {
+  localStorage.setItem(CHAVE_SESSAO, JSON.stringify(sessao));
+}
+
+export function encerrarSessao(): void {
+  localStorage.removeItem(CHAVE_SESSAO);
+}
+
+// A ajudante agora mostra o crachá em todo pedido
 async function enviar(metodo: string, url: string, corpo?: unknown): Promise<Response> {
+  const sessao = sessaoAtual();
   const resposta = await fetch(url, {
     method: metodo,
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      ...(sessao ? { Authorization: `Bearer ${sessao.token}` } : {}),
+    },
     body: corpo === undefined ? undefined : JSON.stringify(corpo),
   });
+  // crachá vencido ou inválido: volta para a tela de entrada
+  if (resposta.status === 401 && sessao) {
+    encerrarSessao();
+    location.reload();
+  }
   if (!resposta.ok) {
     // a API manda { erro: "..." }; se não mandar, usamos o código
     const dados = (await resposta.json().catch(() => ({}))) as { erro?: string };
-    throw new Error(dados.erro ?? `Erro ${resposta.status}`);
+    // 502/504: o Vite não achou a API na porta 3000 — ela não está rodando
+    const semApi = resposta.status === 502 || resposta.status === 504;
+    throw new Error(dados.erro ?? (semApi
+      ? "A API não respondeu. Rode npm run dev na pasta api."
+      : `Erro ${resposta.status}`));
   }
   return resposta;
 }
@@ -20,6 +49,7 @@ function converter(tarefa: Tarefa): Tarefa {
   return { ...tarefa, criadaEm: new Date(tarefa.criadaEm) };
 }
 
+// ---------- Tarefas ----------
 export async function listarTarefas(): Promise<Tarefa[]> {
   const resposta = await enviar("GET", "/api/tarefas");
   const bruto = (await resposta.json()) as Tarefa[];
@@ -38,3 +68,19 @@ export async function alterarStatus(id: number, status: Status): Promise<void> {
 export async function removerTarefa(id: number): Promise<void> {
   await enviar("DELETE", `/api/tarefas/${id}`);
 }
+
+// NOVO: os números do painel, calculados pelo banco com GROUP BY
+export async function buscarEstatisticas(): Promise<Contagem> {
+const resposta = await enviar("GET", "/api/estatisticas");
+return (await resposta.json()) as Contagem;
+}
+// ---------- Usuários ----------
+export async function entrar(email: string, senha: string): Promise<Sessao> {
+  const resposta = await enviar("POST", "/api/login", { email, senha });
+  return (await resposta.json()) as Sessao;
+}
+
+export async function criarConta(nome: string, email: string, senha: string): Promise<void> {
+  await enviar("POST", "/api/usuarios", { nome, email, senha });
+}
+

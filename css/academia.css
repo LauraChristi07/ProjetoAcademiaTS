@@ -80,8 +80,8 @@ main, .entrada { max-width: 880px; margin: 24px auto; padding: 0 16px; }
 .tarefa--dificil { border-left-color: var(--dificil); }
 .tarefa--medio { border-left-color: var(--medio); }
 .tarefa--facil { border-left-color: var(--facil); }
-.tarefa--concluida { opacity: .6; }
-.tarefa--concluida .tarefa__titulo { text-decoration: line-through; }
+.tarefa--feita { opacity: .6; }
+.tarefa--feita .tarefa__titulo { text-decoration: line-through; }
 .tarefa--atrasada { box-shadow: inset 0 0 0 2px var(--dificil); }
 .tarefa__titulo { margin: 0 0 4px; font-size: 1.4rem;font-family: 'Times New Roman', Times, serif; color: #2B3238; }
 .tarefa__descricao { margin: 0 0 6px; color: var(--suave); }

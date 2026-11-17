@@ -1,5 +1,4 @@
 SET NAMES utf8mb4;   -- garante os acentos quando o script roda pelo terminal
-DROP DATABASE IF EXISTS academia;
 CREATE DATABASE academia CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
 -- MariaDB/XAMPP? troque a linha acima por:
 -- CREATE DATABASE academia CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -27,7 +26,7 @@ CREATE TABLE tarefas (
   prazo          DATE         NULL,
   criada_em      DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
   atualizada_em  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  concluida_em   DATETIME     NULL,
+  feito          DATETIME     NULL,
   CONSTRAINT pk_tarefas PRIMARY KEY (id),
   CONSTRAINT fk_tarefas_usuario FOREIGN KEY (usuario_id)
     REFERENCES usuarios (id) ON DELETE CASCADE,
@@ -76,51 +75,42 @@ ALTER TABLE usuarios AUTO_INCREMENT = 1;
 
 SET FOREIGN_KEY_CHECKS = 1;
 
--- 1) Usuários
-INSERT INTO usuarios (nome, email, senha_hash) VALUES
-('Ana', 'ana@email.com', 'ABCD1234'),
-('Bruno', 'bruno@email.com', 'EFGH5678'),
-('Carla', 'carla@email.com', 'IJKL9012');
+SET NAMES utf8mb4;
+USE academia;
 
--- 2) Exercícios
-INSERT INTO exercicios (usuario_id, nome) VALUES
-(1, 'Agachamento livre'),
-(1, 'Leg press'),
-(1, 'Cadeira extensora'),
+-- 1) Apaga os treinos da Ana
+-- As ligações com exercícios saem junto (ON DELETE CASCADE)
+DELETE FROM tarefas WHERE usuario_id = 1;
 
-(2, 'Stiff'),
-(2, 'Agachamento búlgaro'),
-(2, 'Elevação pélvica'),
-
-(3, 'Corrida'),
-(3, 'Bicicleta'),
-(3, 'Esteira'),
-
-(1, 'Rosca direta'),
-(1, 'Tríceps com barra'),
-(1, 'Rosca martelo'),
-
-(2, 'Supino'),
-(2, 'Crucifixo'),
-(2, 'Pullover'),
-
-(3, 'Remada curvada'),
-(3, 'Remada baixa'),
-(3, 'Puxada alta');
-
--- 3) Treinos
+-- 2) Seis treinos novos para a Ana
 INSERT INTO tarefas (usuario_id, titulo, descricao, nivel, status, prazo) VALUES
-(1, 'Treino de pernas', 'PR #42', 'medio', 'pulado', NULL),
-(2, 'Treino de glúteos', NULL, 'facil', 'pulado', NULL),
-(3, 'Treino de cardio', 'PR #42', 'medio', 'feito', NULL);
+(1, 'Treino de pernas',  'Foco em quadríceps',       'dificil', 'feito',     '2026-11-20'),
+(1, 'Treino de braços', 'Bíceps e tríceps',         'medio',   'planejado', '2026-11-21'),
+(1, 'Treino de peito',  'Peitoral e resistência',   'medio',   'planejado', NULL),
+(1, 'Treino de glúteos','Fortalecimento muscular', 'facil',   'planejado', NULL),
+(1, 'Treino de costas', 'Postura e fortalecimento','dificil', 'planejado', '2026-11-25'),
+(1, 'Treino funcional','Condicionamento físico',   'medio',   'pulado',    NULL);
 
--- 4) Ligação treino ↔ exercício
-INSERT INTO tarefa_exercicio (tarefa_id, exercicio_id) VALUES
-(1, 1),
-(2, 2),
-(3, 3);
+-- 3) Os exercícios dos treinos, ligados pelo nome
+INSERT INTO tarefa_exercicio (tarefa_id, exercicio_id)
+SELECT t.id, e.id
+  FROM tarefas t
+  JOIN exercicios e ON e.usuario_id = t.usuario_id
+ WHERE t.usuario_id = 1
+   AND (   (t.titulo = 'Treino de pernas' AND e.nome IN ('Agachamento livre', 'Leg press', 'Cadeira extensora'))
+        OR (t.titulo = 'Treino de braços' AND e.nome IN ('Rosca direta', 'Tríceps com barra', 'Rosca martelo'))
+        OR (t.titulo = 'Treino de peito' AND e.nome IN ('Supino', 'Crucifixo'))
+        OR (t.titulo = 'Treino de glúteos' AND e.nome IN ('Agachamento livre', 'Leg press'))
+        OR (t.titulo = 'Treino de costas' AND e.nome IN ('Agachamento livre', 'Cadeira extensora'))
+        OR (t.titulo = 'Treino funcional' AND e.nome IN ('Agachamento livre', 'Rosca direta')));
 
+-- 4) Confira: planejado 4, feito 1, pulado 1
+SELECT status, COUNT(*) AS quantidade
+FROM tarefas
+WHERE usuario_id = 1
+GROUP BY status;
 SELECT * FROM tarefas;
 SELECT * FROM exercicios;
 SELECT * FROM tarefa_exercicio;
 SELECT * FROM usuarios;
+

@@ -1,3 +1,7 @@
+// =========================================================
+// api/src/servidor.ts — AULA 6: tags de volta (JOIN + GROUP_CONCAT),
+// filtros na URL (WHERE/LIKE/ORDER BY) e o painel (GROUP BY)
+// =========================================================
 import "dotenv/config"; // primeira linha: carrega o .env antes de tudo
 import bcrypt from "bcryptjs";
 import express, { type NextFunction, type Request, type Response } from "express";
@@ -10,19 +14,29 @@ import { NIVEIS, STATUS, type DadosTarefa, type Status } from "./tipos";
 const app = express();
 app.use(express.json());
 
+// Agora com as tags: uma subconsulta junta os nomes numa linha só
 const SELECT_TAREFAS = `
-  SELECT id, titulo, descricao, nivel, status,
-         DATE_FORMAT(prazo, '%Y-%m-%d') AS prazo,
-         criada_em AS criadaEm
-    FROM tarefas`;
+  SELECT t.id, t.titulo, t.descricao, t.nivel, t.status,
+         DATE_FORMAT(t.prazo, '%Y-%m-%d') AS prazo,
+         t.criada_em AS criadaEm,
+         (SELECT GROUP_CONCAT(g.nome ORDER BY g.nome SEPARATOR ',')
+            FROM tarefa_exercicio te
+            JOIN exercicios g ON g.id = te.exercicio_id
+           WHERE te.tarefa_id = t.id) AS exercicios
+    FROM tarefas t`;
+
+// O banco devolve os exercícios como "estudo,ts" (ou null): viram um array
+function paraTarefa(linha: RowDataPacket): RowDataPacket {
+  return { ...linha, exercicios: linha.exercicios ? String(linha.exercicios).split(",") : [] };
+}
 
 // Busca uma tarefa pelo id — e SÓ se for do usuário informado
 async function buscarUma(id: number, usuarioId: number): Promise<RowDataPacket | undefined> {
   const [linhas] = await banco.execute<RowDataPacket[]>(
-    `${SELECT_TAREFAS} WHERE id = ? AND usuario_id = ?`,
+    `${SELECT_TAREFAS} WHERE t.id = ? AND t.usuario_id = ?`,
     [id, usuarioId]
   );
-  return linhas.length > 0 ? { ...linhas[0], exercicios: [] } : undefined;
+  return linhas.length > 0 ? paraTarefa(linhas[0]) : undefined;
 }
 
 // Devolve a mensagem de erro, ou undefined se estiver tudo certo
@@ -37,12 +51,24 @@ function validar(dados: DadosTarefa): string | undefined {
 }
 
 // ---------- LER ----------
-app.get("/api/tarefas", exigirLogin, async (_req, res) => {
-  const [linhas] = await banco.execute<RowDataPacket[]>(
-    `${SELECT_TAREFAS} WHERE usuario_id = ? ORDER BY id`,
-    [usuarioDe(res)]
-  );
-  res.json(linhas.map((linha) => ({ ...linha, exercicios: [] })));
+// Filtros opcionais na URL: /api/tarefas?status=planejadas&busca=rev
+app.get("/api/tarefas", exigirLogin, async (req, res) => {
+  let sql = `${SELECT_TAREFAS} WHERE t.usuario_id = ?`;
+  const valores: (string | number)[] = [usuarioDe(res)];
+
+  const { status, busca } = req.query;
+  if (typeof status === "string" && STATUS.includes(status as Status)) {
+    sql += " AND t.status = ?"; // o filter, no banco
+    valores.push(status);
+  }
+  if (typeof busca === "string" && busca.trim() !== "") {
+    sql += " AND t.titulo LIKE ?"; // o includes, no banco
+    valores.push(`%${busca.trim()}%`);
+  }
+  sql += " ORDER BY FIELD(t.nivel, 'dificil', 'medio', 'facil'), t.titulo"; // o sort
+
+  const [linhas] = await banco.execute<RowDataPacket[]>(sql, valores);
+  res.json(linhas.map(paraTarefa));
 });
 
 app.get("/api/tarefas/:id", exigirLogin, async (req, res) => {
@@ -69,7 +95,7 @@ app.post("/api/tarefas", exigirLogin, async (req, res) => {
       usuarioDe(res),
       dados.titulo!.trim(),
       dados.descricao ?? null,
-      dados.nivel ?? "medio",
+      dados.nivel ?? "media",
       dados.prazo || null,
     ]
   );
@@ -107,6 +133,23 @@ app.delete("/api/tarefas/:id", exigirLogin, async (req, res) => {
     return;
   }
   res.status(204).end();
+});
+
+// ---------- O PAINEL: o GROUP BY faz o que o reduce fazia no front ----------
+app.get("/api/estatisticas", exigirLogin, async (_req, res) => {
+  const [linhas] = await banco.execute<RowDataPacket[]>(
+    `SELECT status, COUNT(*) AS quantidade
+       FROM tarefas
+      WHERE usuario_id = ?
+      GROUP BY status`,
+    [usuarioDe(res)]
+  );
+  // começa com zeros: o GROUP BY não devolve linha para status sem tarefa
+  const contagem: Record<Status, number> = { planejado: 0, pulado: 0, feito: 0 };
+  for (const linha of linhas) {
+    contagem[linha.status as Status] = Number(linha.quantidade);
+  }
+  res.json(contagem);
 });
 
 // ---------- USUÁRIOS (Aula 5) ----------
@@ -157,4 +200,4 @@ app.use((erro: unknown, _req: Request, res: Response, _next: NextFunction) => {
   res.status(500).json({ erro: "Algo deu errado no servidor. Tente de novo." });
 });
 
-app.listen(3000, () => console.log("API do TaskFlow em http://localhost:3000"));
+app.listen(3000, () => console.log("API da academia em http://localhost:3000"));
