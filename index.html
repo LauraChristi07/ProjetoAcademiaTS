@@ -65,15 +65,28 @@
 
     <!-- todo o resto da página (painel, formulário e lista) fica aqui dentro -->
     <main id="tela-app" class="conteudo" hidden>
-      <!-- ===== Painel ===== -->
+      <!-- NOVO na Aula 6: o aviso amarelo (o some decide se aparece) -->
+      <p id="aviso-urgente" class="aviso aviso--oculto">
+        Atenção: há tarefas de nivel dificil pendentes.
+      </p>
+
+      <!-- ===== Painel completo: quatro números vindos do banco (GROUP BY) ===== -->
       <ul class="estatisticas">
         <li class="estatistica">
           <span class="estatistica__numero" id="total">0</span>
           <span class="estatistica__rotulo">Total</span>
         </li>
         <li class="estatistica">
-          <span class="estatistica__numero" id="planejado">0</span>
+          <span class="estatistica__numero" id="Planejado">0</span>
           <span class="estatistica__rotulo">Planejadas</span>
+        </li>
+        <li class="estatistica">
+          <span class="estatistica__numero" id="Pulado">0</span>
+          <span class="estatistica__rotulo">Puladas</span>
+        </li>
+        <li class="estatistica">
+          <span class="estatistica__numero" id="Feito">0</span>
+          <span class="estatistica__rotulo">Feitas</span>
         </li>
       </ul>
 
@@ -95,42 +108,20 @@
       </form>
       <p class="campo__erro" id="erro" role="alert"></p>
 
-      <ul class="lista" id="lista"></ul>
-      <p id="aviso-urgente" class="aviso aviso--oculto">
-      Atenção: há tarefa de nivel difícil ainda planejadas.
-    </p>
-  <ul class="estatisticas">
-      <li class="estatistica">
-      <span class="estatistica__numero" id="total">0</span>
-      <span class="estatistica__rotulo">Total</span>
-  </li>
-  <li class="estatistica">
-    <span class="estatistica__numero" id="Planejado">0</span>
-    <span class="estatistica__rotulo">Planejadas</span>
-  </li>
-  <li class="estatistica">
-    <span class="estatistica__numero" id="Pulado">0</span>
-    <span class="estatistica__rotulo">Puladas</span>
-  </li>
-  <li class="estatistica">
-    <span class="estatistica__numero" id="Feito">0</span>
-    <span class="estatistica__rotulo">Feitas</span>
-  </li>
-  </ul>
-    <div class="filtros">
-    <div class="filtros__grupo" id="filtros-status">
-        <button class="filtro filtro--ativo" type="button" data-status="todos">Todas</button>
-        <button class="filtro" type="button" data-status="planejado">Planejadas</button>
-        <button class="filtro" type="button" data-status="pulado">Puladas</button>
-        <button class="filtro" type="button" data-status="feito">Feitas</button>
-    </div>
+      <!-- NOVO na Aula 6: filtros por status e busca por título -->
+      <div class="filtros">
+        <div class="filtros__grupo" id="filtros-status">
+          <button class="filtro filtro--ativo" type="button" data-status="todos">Todas</button>
+          <button class="filtro" type="button" data-status="planejado">Planejadas</button>
+          <button class="filtro" type="button" data-status="pulado">Puladas</button>
+          <button class="filtro" type="button" data-status="feito">Feitas</button>
+        </div>
         <input class="busca" id="busca" type="search" placeholder="Pesquisar por título..." />
-    </div>
-    <ul class="lista" id="lista"></ul>
-      <p class="vazio" id="vazio" hidden>Nenhuma tarefa encontrada.</p>
+      </div>
 
+      <ul class="lista" id="lista"></ul>
+      <p class="vazio" id="vazio" hidden>Nenhuma tarefa encontrada.</p>
     </main>
-    
 
     <script type="module" src="./src/main.ts"></script>
   </body>

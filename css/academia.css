@@ -26,13 +26,13 @@ main, .entrada { max-width: 880px; margin: 24px auto; padding: 0 16px; }
 .campo__rotulo { font-size: .85rem; color: var(--suave); }
 .campo__entrada, .campo__selecao, .busca { padding: 8px 10px; border: 1px solid var(--borda); border-radius: 6px;
   background: var(--cartao); color: var(--texto); font: inherit; }
-.campo__erro { color: var(--alta); min-height: 1.2em; margin: 8px 0; }
+.campo__erro { color: var(--dificil); min-height: 1.2em; margin: 8px 0; }
 .botao { padding: 8px 14px; border: 1px solid var(--borda); border-radius: 6px; background: var(--cartao);
   color: var(--texto); font: inherit; cursor: pointer; }
 .botao--primario { background: var(--azul); color: #fff; border-color: var(--azul); }
 .botao--pequeno { padding: 4px 10px; font-size: .85rem; }
-.botao--sucesso { border-color: var(--fácil); color: var(--fácil); }
-.botao--perigo { border-color: var(--difícil); color: var(--difícil); }
+.botao--sucesso { border-color: var(--facil); color: var(--facil); }
+.botao--perigo { border-color: var(--dificil); color: var(--dificil); }
 .aviso { background: #fff6d6; color: #5c4600; border-left: 4px solid var(--amarelo); padding: 10px 14px; border-radius: 6px; }
 .aviso--oculto { display: none; }
 .estatisticas {
@@ -80,8 +80,8 @@ main, .entrada { max-width: 880px; margin: 24px auto; padding: 0 16px; }
 .tarefa--dificil { border-left-color: var(--dificil); }
 .tarefa--medio { border-left-color: var(--medio); }
 .tarefa--facil { border-left-color: var(--facil); }
-.tarefa--feita { opacity: .6; }
-.tarefa--feita .tarefa__titulo { text-decoration: line-through; }
+.tarefa--feito { opacity: .6; }
+.tarefa--feito .tarefa__titulo { text-decoration: line-through; }
 .tarefa--atrasada { box-shadow: inset 0 0 0 2px var(--dificil); }
 .tarefa__titulo { margin: 0 0 4px; font-size: 1.4rem;font-family: 'Times New Roman', Times, serif; color: #2B3238; }
 .tarefa__descricao { margin: 0 0 6px; color: var(--suave); }

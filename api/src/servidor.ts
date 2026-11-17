@@ -30,11 +30,12 @@ function paraTarefa(linha: RowDataPacket): RowDataPacket {
   return { ...linha, exercicios: linha.exercicios ? String(linha.exercicios).split(",") : [] };
 }
 
-// Busca uma tarefa pelo id — e SÓ se for do usuário informado
-async function buscarUma(id: number, usuarioId: number): Promise<RowDataPacket | undefined> {
+// Busca uma tarefa pelo id — agora compartilhada entre todos os usuários
+// ALTERADO: removemos usuarioId porque qualquer usuário pode acessar qualquer tarefa.
+async function buscarUma(id: number): Promise<RowDataPacket | undefined> {
   const [linhas] = await banco.execute<RowDataPacket[]>(
-    `${SELECT_TAREFAS} WHERE t.id = ? AND t.usuario_id = ?`,
-    [id, usuarioId]
+    `${SELECT_TAREFAS} WHERE t.id = ?`, // ALTERADO: retirado o filtro por usuario_id
+    [id] // ALTERADO: agora só precisamos informar o ID da tarefa
   );
   return linhas.length > 0 ? paraTarefa(linhas[0]) : undefined;
 }
@@ -51,10 +52,10 @@ function validar(dados: DadosTarefa): string | undefined {
 }
 
 // ---------- LER ----------
-// Filtros opcionais na URL: /api/tarefas?status=planejadas&busca=rev
+// Filtros opcionais na URL: /api/tarefas?status=planejado&busca=rev
 app.get("/api/tarefas", exigirLogin, async (req, res) => {
-  let sql = `${SELECT_TAREFAS} WHERE t.usuario_id = ?`;
-  const valores: (string | number)[] = [usuarioDe(res)];
+  let sql = `${SELECT_TAREFAS} WHERE 1 = 1`; // ALTERADO: não filtra mais pelo usuário conectado
+  const valores: (string | number)[] = []; // ALTERADO: começa sem o ID do usuário
 
   const { status, busca } = req.query;
   if (typeof status === "string" && STATUS.includes(status as Status)) {
@@ -72,7 +73,7 @@ app.get("/api/tarefas", exigirLogin, async (req, res) => {
 });
 
 app.get("/api/tarefas/:id", exigirLogin, async (req, res) => {
-  const tarefa = await buscarUma(Number(req.params.id), usuarioDe(res));
+  const tarefa = await buscarUma(Number(req.params.id)); // ALTERADO: busca sem restringir ao criador
   if (!tarefa) {
     res.status(404).json({ erro: `Tarefa #${req.params.id} não encontrada.` });
     return;
@@ -92,14 +93,14 @@ app.post("/api/tarefas", exigirLogin, async (req, res) => {
     `INSERT INTO tarefas (usuario_id, titulo, descricao, nivel, prazo)
      VALUES (?, ?, ?, ?, ?)`,
     [
-      usuarioDe(res),
+      usuarioDe(res), // ALTERADO: continua registrando quem criou a tarefa
       dados.titulo!.trim(),
       dados.descricao ?? null,
-      dados.nivel ?? "media",
+      dados.nivel ?? "medio",
       dados.prazo || null,
     ]
   );
-  res.status(201).json(await buscarUma(resultado.insertId, usuarioDe(res)));
+  res.status(201).json(await buscarUma(resultado.insertId)); // ALTERADO: busca sem filtro de usuário
 });
 
 // ---------- ATUALIZAR (só o status) ----------
@@ -111,13 +112,18 @@ app.patch("/api/tarefas/:id/status", exigirLogin, async (req, res) => {
   }
   const [resultado] = await banco.execute<ResultSetHeader>(
     `UPDATE tarefas
-        SET status = ?, feito = IF(? = 'feito', NOW(), NULL)
-      WHERE id = ? AND usuario_id = ?`,
-    [status, status, Number(req.params.id), usuarioDe(res)]
+        SET status = ?, concluida_em = IF(? = 'feito', NOW(), NULL)
+      WHERE id = ?`, // ALTERADO: usa concluida_em, que é a coluna existente no banco, e permite atualizar qualquer tarefa
+    [status, status, Number(req.params.id)] // ALTERADO: removido o usuario_id dos parâmetros
   );
+
+  // ALTERADO: verifica se a tarefa existe, pois affectedRows pode ser zero quando o status já era o mesmo
   if (resultado.affectedRows === 0) {
-    res.status(404).json({ erro: `Tarefa #${req.params.id} não encontrada.` });
-    return;
+    const tarefa = await buscarUma(Number(req.params.id));
+    if (!tarefa) {
+      res.status(404).json({ erro: `Tarefa #${req.params.id} não encontrada.` });
+      return;
+    }
   }
   res.status(204).end();
 });
@@ -125,8 +131,8 @@ app.patch("/api/tarefas/:id/status", exigirLogin, async (req, res) => {
 // ---------- APAGAR ----------
 app.delete("/api/tarefas/:id", exigirLogin, async (req, res) => {
   const [resultado] = await banco.execute<ResultSetHeader>(
-    "DELETE FROM tarefas WHERE id = ? AND usuario_id = ?",
-    [Number(req.params.id), usuarioDe(res)]
+    "DELETE FROM tarefas WHERE id = ?", // ALTERADO: qualquer usuário pode remover uma tarefa
+    [Number(req.params.id)] // ALTERADO: removido o filtro por usuario_id
   );
   if (resultado.affectedRows === 0) {
     res.status(404).json({ erro: `Tarefa #${req.params.id} não encontrada.` });
@@ -140,9 +146,7 @@ app.get("/api/estatisticas", exigirLogin, async (_req, res) => {
   const [linhas] = await banco.execute<RowDataPacket[]>(
     `SELECT status, COUNT(*) AS quantidade
        FROM tarefas
-      WHERE usuario_id = ?
-      GROUP BY status`,
-    [usuarioDe(res)]
+      GROUP BY status` // ALTERADO: conta as tarefas de todos os usuários
   );
   // começa com zeros: o GROUP BY não devolve linha para status sem tarefa
   const contagem: Record<Status, number> = { planejado: 0, pulado: 0, feito: 0 };
