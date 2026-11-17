@@ -86,7 +86,7 @@ function criarItem(tarefa: Tarefa): HTMLLIElement {
   acoes.className = "tarefa__acoes";
   if (tarefa.status !== "feito") {
     acoes.append(
-      botao("Pulado", "", () => mudarStatus(tarefa.id, "pulado")),
+      botao("Pular", "", () => mudarStatus(tarefa.id, "pulado")),
       botao("Concluir", "botao--sucesso", () => mudarStatus(tarefa.id, "feito"))
     );
   } else {
