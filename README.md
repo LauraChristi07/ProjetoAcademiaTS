@@ -48,7 +48,6 @@ npm install
 ### 3. Configurar o banco de dados
 
 - Abra o MySQL Workbench.
-- Para criar um banco novo, execute o arquivo `taskflow.sql`.
 - Para recuperar os dados salvos, importe o arquivo `backup.sql`.
 
 **Importante:** o `backup.sql` contém a estrutura e os dados do banco, incluindo usuários, tarefas e exercícios.

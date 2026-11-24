@@ -2,6 +2,7 @@ SET NAMES utf8mb4;
 CREATE DATABASE academia CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE academia;
 
+
 CREATE TABLE usuarios (
     id INT UNSIGNED NOT NULL AUTO_INCREMENT,
     nome VARCHAR(100) NOT NULL,
@@ -62,7 +63,6 @@ DELETE FROM exercicios;
 DELETE FROM usuarios;
 
 -- Reiniciar os IDs
-ALTER TABLE tarefa_exercicio AUTO_INCREMENT = 1;
 ALTER TABLE tarefas AUTO_INCREMENT = 1;
 ALTER TABLE exercicios AUTO_INCREMENT = 1;
 ALTER TABLE usuarios AUTO_INCREMENT = 1;
@@ -72,10 +72,12 @@ SET FOREIGN_KEY_CHECKS = 1;
 
 -- 1) Usuários
 INSERT INTO usuarios (nome, email, senha_hash) VALUES
-('Ana', 'ana@email.com', '123456'),
-('Bruno', 'bruno@email.com', '123456'),
-('Carla', 'carla@email.com', '123456');
-
+('Ana', 'ana@email.com', 'ABCD1234'),
+('Bruno', 'bruno@email.com', 'EFGH5678'),
+('Carla', 'carla@email.com', 'IJKL9012'),
+('Daniel', 'daniel@email.com', 'MNOP3456'),
+('Julia', 'julia@email.com', 'QRST7890'),
+('Pedro', 'pedro@email.com', 'UVWX1234');
 
 -- 2) Exercícios
 INSERT INTO exercicios (usuario_id, nome) VALUES
@@ -117,9 +119,8 @@ INSERT INTO tarefas (usuario_id, titulo, descricao, nivel, status, prazo) VALUES
 -- 4) Ligação treino ↔ exercício
 INSERT INTO tarefa_exercicio (tarefa_id, exercicio_id) VALUES
 (1, 1),
-(2, 2),
-(3, 3);
-
+(2, 5),
+(3, 7);
 
 SELECT * FROM tarefas;
 SELECT * FROM exercicios;

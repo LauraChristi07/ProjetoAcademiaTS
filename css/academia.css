@@ -98,3 +98,142 @@ main, .entrada { max-width: 880px; margin: 24px auto; padding: 0 16px; }
     grid-template-columns: 1fr auto;
   }
 }
+
+
+/* ===== Barra de progresso dos treinos ===== */
+
+.progresso {
+  background-color: #ffffff;
+  padding: 22px;
+  margin: 24px 0;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.progresso__cabecalho {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.progresso__cabecalho h2 {
+  font-size: 18px;
+  color: #333333;
+  margin: 0;
+}
+
+#porcentagem-progresso {
+  font-size: 22px;
+  font-weight: bold;
+  color: #397a50;
+}
+
+.progresso__barra {
+  width: 100%;
+  height: 12px;
+  background-color: #e8eee9;
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.progresso__preenchimento {
+  height: 100%;
+  background: linear-gradient(90deg, #78a987, #397a50);
+  border-radius: 20px;
+  transition: width 0.5s ease;
+}
+
+#texto-progresso {
+  margin: 12px 0 0;
+  font-size: 13px;
+  color: #777777;
+}
+
+/* ===== Exercícios expansíveis ===== */
+
+.tarefa__detalhes {
+  margin-top: 10px;
+}
+
+.tarefa__detalhes summary {
+  color: #397a50;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  list-style: none;
+}
+
+.tarefa__detalhes summary::-webkit-details-marker {
+  display: none;
+}
+
+.tarefa__detalhes summary::after {
+  content: " ↓";
+}
+
+.tarefa__detalhes[open] summary::after {
+  content: " ↑";
+}
+
+.tarefa__exercicios {
+  margin: 8px 0 0;
+  padding: 10px 10px 10px 28px;
+  background-color: #f2f6f3;
+  border-radius: 8px;
+  color: #555;
+  font-size: 13px;
+  line-height: 1.8;
+}
+
+
+
+
+/* ===== Apresentação da tela de cadastro ===== */
+
+.apresentacao-cadastro {
+  margin-bottom: 24px;
+  color: #444;
+}
+
+.apresentacao-cadastro h2 {
+  color: #397a50;
+  font-size: 22px;
+  margin-bottom: 12px;
+}
+
+.apresentacao-cadastro p {
+  font-size: 14px;
+  line-height: 1.6;
+  margin-bottom: 16px;
+}
+
+.apresentacao-cadastro h3 {
+  font-size: 16px;
+  margin-bottom: 10px;
+  color: #333;
+}
+
+.apresentacao-cadastro ul {
+  padding-left: 20px;
+  margin-bottom: 20px;
+}
+
+.apresentacao-cadastro li {
+  font-size: 14px;
+  line-height: 1.8;
+}
+
+.frases-motivacionais {
+  padding: 12px;
+  background-color: #f2f6f3;
+  border-left: 3px solid #397a50;
+  border-radius: 6px;
+}
+
+.frases-motivacionais p {
+  color: #397a50;
+  font-style: italic;
+  margin: 5px 0;
+}
+

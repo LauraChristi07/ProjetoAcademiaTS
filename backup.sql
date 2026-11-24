@@ -1,144 +1,285 @@
--- MySQL dump 10.13  Distrib 8.0.46, for Win64 (x86_64)
---
--- Host: localhost    Database: academia
--- ------------------------------------------------------
--- Server version	8.0.46
+-- ============================================
+-- PROJETO ACADEMIA
+-- Banco de dados: academia
+-- ============================================
 
-/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
-/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
-/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!50503 SET NAMES utf8 */;
-/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
-/*!40103 SET TIME_ZONE='+00:00' */;
-/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
-/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
-/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
-/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+SET NAMES utf8mb4;
+CREATE DATABASE academia
+CHARACTER SET utf8mb4
+COLLATE utf8mb4_unicode_ci;
 
---
--- Table structure for table `exercicios`
---
+USE academia;
 
-DROP TABLE IF EXISTS `exercicios`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `exercicios` (
-  `id` int unsigned NOT NULL AUTO_INCREMENT,
-  `usuario_id` int unsigned NOT NULL,
-  `nome` varchar(40) COLLATE utf8mb4_unicode_ci NOT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `uq_exercicios_usuario_nome` (`usuario_id`,`nome`),
-  CONSTRAINT `fk_exercicios_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=37 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
 
---
--- Dumping data for table `exercicios`
---
+-- ============================================
+-- 1) TABELA: USUARIOS
+-- ============================================
 
-LOCK TABLES `exercicios` WRITE;
-/*!40000 ALTER TABLE `exercicios` DISABLE KEYS */;
-INSERT INTO `exercicios` VALUES (1,1,'Agachamento livre'),(3,1,'Cadeira extensora'),(2,1,'Leg press'),(10,1,'Rosca direta'),(12,1,'Rosca martelo'),(11,1,'Tríceps com barra'),(5,2,'Agachamento búlgaro'),(14,2,'Crucifixo'),(6,2,'Elevação pélvica'),(15,2,'Pullover'),(4,2,'Stiff'),(13,2,'Supino'),(8,3,'Bicicleta'),(7,3,'Corrida'),(9,3,'Esteira'),(18,3,'Puxada alta'),(17,3,'Remada baixa'),(16,3,'Remada curvada');
-/*!40000 ALTER TABLE `exercicios` ENABLE KEYS */;
-UNLOCK TABLES;
+CREATE TABLE usuarios (
+    id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    nome VARCHAR(100) NOT NULL,
+    email VARCHAR(150) NOT NULL,
+    senha_hash CHAR(60) NOT NULL COMMENT 'Hash bcrypt, NUNCA a senha',
+    criado_em DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
---
--- Table structure for table `tarefa_exercicio`
---
+    CONSTRAINT pk_usuarios PRIMARY KEY (id),
+    CONSTRAINT uq_usuarios_email UNIQUE (email)
+);
 
-DROP TABLE IF EXISTS `tarefa_exercicio`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `tarefa_exercicio` (
-  `tarefa_id` int unsigned NOT NULL,
-  `exercicio_id` int unsigned NOT NULL,
-  PRIMARY KEY (`tarefa_id`,`exercicio_id`),
-  KEY `fk_tarefa_exercicio_exercicio` (`exercicio_id`),
-  CONSTRAINT `fk_tarefa_exercicio_exercicio` FOREIGN KEY (`exercicio_id`) REFERENCES `exercicios` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `fk_tarefa_exercicio_tarefa` FOREIGN KEY (`tarefa_id`) REFERENCES `tarefas` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
 
---
--- Dumping data for table `tarefa_exercicio`
---
+-- ============================================
+-- 2) TABELA: TAREFAS
+-- Cada usuário possui suas próprias 6 tarefas.
+-- ============================================
 
-LOCK TABLES `tarefa_exercicio` WRITE;
-/*!40000 ALTER TABLE `tarefa_exercicio` DISABLE KEYS */;
-INSERT INTO `tarefa_exercicio` VALUES (1,1),(2,2),(3,3);
-/*!40000 ALTER TABLE `tarefa_exercicio` ENABLE KEYS */;
-UNLOCK TABLES;
+CREATE TABLE tarefas (
+    id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    usuario_id INT UNSIGNED NOT NULL,
+    titulo VARCHAR(120) NOT NULL,
+    descricao TEXT NULL,
+    nivel ENUM('facil', 'medio', 'dificil') NOT NULL DEFAULT 'medio',
+    status ENUM('planejado', 'feito', 'pulado') NOT NULL DEFAULT 'planejado',
+    prazo DATE NULL,
+    criada_em DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    atualizada_em DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    concluida_em DATETIME NULL,
 
---
--- Table structure for table `tarefas`
---
+    CONSTRAINT pk_tarefas PRIMARY KEY (id),
 
-DROP TABLE IF EXISTS `tarefas`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `tarefas` (
-  `id` int unsigned NOT NULL AUTO_INCREMENT,
-  `usuario_id` int unsigned NOT NULL,
-  `titulo` varchar(120) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `descricao` text COLLATE utf8mb4_unicode_ci,
-  `nivel` enum('facil','medio','dificil') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'medio',
-  `status` enum('planejado','feito','pulado') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'planejado',
-  `prazo` date DEFAULT NULL,
-  `criada_em` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `atualizada_em` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `concluida_em` datetime DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  KEY `fk_tarefas_usuario` (`usuario_id`),
-  CONSTRAINT `fk_tarefas_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `ck_tarefas_titulo` CHECK ((char_length(trim(`titulo`)) >= 3))
-) ENGINE=InnoDB AUTO_INCREMENT=75 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+    CONSTRAINT fk_tarefas_usuario
+        FOREIGN KEY (usuario_id)
+        REFERENCES usuarios (id)
+        ON DELETE CASCADE,
 
---
--- Dumping data for table `tarefas`
---
+    CONSTRAINT ck_tarefas_titulo
+        CHECK (CHAR_LENGTH(TRIM(titulo)) >= 3)
+);
 
-LOCK TABLES `tarefas` WRITE;
-/*!40000 ALTER TABLE `tarefas` DISABLE KEYS */;
-INSERT INTO `tarefas` VALUES (26,2,'Treino de glúteos',NULL,'facil','feito',NULL,'2026-11-17 17:49:12','2026-11-17 18:44:12','2026-11-17 18:44:12'),(27,3,'Treino de cardio','PR #42','medio','feito',NULL,'2026-11-17 17:49:12','2026-11-17 18:28:09','2026-11-17 18:28:09'),(28,4,'Treino de braços',NULL,'facil','feito',NULL,'2026-11-17 17:49:12','2026-11-17 18:28:14','2026-11-17 18:28:14'),(29,5,'Treino de peito',NULL,'medio','pulado',NULL,'2026-11-17 17:49:12','2026-11-17 18:25:37',NULL),(30,6,'Treino de costas',NULL,'dificil','planejado',NULL,'2026-11-17 17:49:12','2026-11-17 17:49:12',NULL),(32,10,'Treino de pernas','PR #42','medio','planejado',NULL,'2026-11-17 19:31:28','2026-11-17 19:31:28',NULL),(33,12,'Treino de pernas','PR #42','medio','planejado',NULL,'2026-11-17 19:31:28','2026-11-17 19:31:28',NULL),(34,3,'Treino de pernas','PR #42','medio','planejado',NULL,'2026-11-17 19:31:28','2026-11-17 19:31:28',NULL),(35,2,'Treino de pernas','PR #42','medio','planejado',NULL,'2026-11-17 19:31:28','2026-11-17 19:31:28',NULL),(36,10,'Treino de glúteos',NULL,'facil','feito',NULL,'2026-11-17 19:31:28','2026-11-17 19:31:28',NULL),(37,12,'Treino de glúteos',NULL,'facil','feito',NULL,'2026-11-17 19:31:28','2026-11-17 19:31:28',NULL),(38,3,'Treino de glúteos',NULL,'facil','feito',NULL,'2026-11-17 19:31:28','2026-11-17 19:31:28',NULL),(40,10,'Treino de cardio','PR #42','medio','feito',NULL,'2026-11-17 19:31:28','2026-11-17 19:31:28',NULL),(41,12,'Treino de cardio','PR #42','medio','feito',NULL,'2026-11-17 19:31:28','2026-11-17 19:31:28',NULL),(42,2,'Treino de cardio','PR #42','medio','feito',NULL,'2026-11-17 19:31:28','2026-11-17 19:31:28',NULL),(44,10,'Treino de braços',NULL,'facil','feito',NULL,'2026-11-17 19:31:28','2026-11-17 19:31:28',NULL),(45,12,'Treino de braços',NULL,'facil','feito',NULL,'2026-11-17 19:31:28','2026-11-17 19:31:28',NULL),(46,3,'Treino de braços',NULL,'facil','feito',NULL,'2026-11-17 19:31:28','2026-11-17 19:31:28',NULL),(47,2,'Treino de braços',NULL,'facil','feito',NULL,'2026-11-17 19:31:28','2026-11-17 19:31:28',NULL),(49,10,'Treino de peito',NULL,'medio','pulado',NULL,'2026-11-17 19:31:28','2026-11-17 19:31:28',NULL),(50,12,'Treino de peito',NULL,'medio','pulado',NULL,'2026-11-17 19:31:28','2026-11-17 19:31:28',NULL),(51,3,'Treino de peito',NULL,'medio','pulado',NULL,'2026-11-17 19:31:28','2026-11-17 19:31:28',NULL),(52,2,'Treino de peito',NULL,'medio','pulado',NULL,'2026-11-17 19:31:28','2026-11-17 19:31:28',NULL),(54,10,'Treino de costas',NULL,'dificil','planejado',NULL,'2026-11-17 19:31:28','2026-11-17 19:31:28',NULL),(55,12,'Treino de costas',NULL,'dificil','planejado',NULL,'2026-11-17 19:31:28','2026-11-17 19:31:28',NULL),(56,3,'Treino de costas',NULL,'dificil','planejado',NULL,'2026-11-17 19:31:28','2026-11-17 19:31:28',NULL),(57,2,'Treino de costas',NULL,'dificil','planejado',NULL,'2026-11-17 19:31:28','2026-11-17 19:31:28',NULL),(63,13,'Treino de pernas','PR #42','medio','planejado',NULL,'2026-11-17 19:35:57','2026-11-17 19:35:57',NULL),(64,13,'Treino de glúteos','','facil','feito',NULL,'2026-11-17 19:35:57','2026-11-17 19:35:57',NULL),(65,13,'Treino de cardio','PR #42','medio','feito',NULL,'2026-11-17 19:35:57','2026-11-17 19:35:57',NULL),(66,13,'Treino de braços','','facil','feito',NULL,'2026-11-17 19:35:57','2026-11-17 19:35:57',NULL),(67,13,'Treino de peito','','medio','pulado',NULL,'2026-11-17 19:35:57','2026-11-17 19:35:57',NULL),(68,13,'Treino de costas','','dificil','planejado',NULL,'2026-11-17 19:35:57','2026-11-17 19:35:57',NULL),(69,1,'Treino de Perna',NULL,'medio','planejado',NULL,'2026-11-17 20:15:50','2026-11-17 20:15:50',NULL),(70,1,'Treino de Glúteos',NULL,'medio','pulado',NULL,'2026-11-17 20:16:08','2026-11-17 20:17:09',NULL),(71,1,'Treino de Braços',NULL,'medio','feito',NULL,'2026-11-17 20:16:19','2026-11-17 20:17:13','2026-11-17 20:17:13'),(72,1,'Treino de Cardio',NULL,'dificil','feito',NULL,'2026-11-17 20:16:30','2026-11-17 20:17:12','2026-11-17 20:17:12'),(73,1,'Treino de Abdomen',NULL,'dificil','planejado',NULL,'2026-11-17 20:16:40','2026-11-17 20:16:40',NULL),(74,1,'Treino de Peito',NULL,'dificil','planejado',NULL,'2026-11-17 20:17:06','2026-11-17 20:17:06',NULL);
-/*!40000 ALTER TABLE `tarefas` ENABLE KEYS */;
-UNLOCK TABLES;
 
---
--- Table structure for table `usuarios`
---
+-- ============================================
+-- 3) TABELA: EXERCICIOS
+-- Os mesmos 18 exercícios são compartilhados.
+-- ============================================
 
-DROP TABLE IF EXISTS `usuarios`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `usuarios` (
-  `id` int unsigned NOT NULL AUTO_INCREMENT,
-  `nome` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `email` varchar(150) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `senha_hash` char(60) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'hash bcrypt, NUNCA a senha',
-  `criado_em` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `uq_usuarios_email` (`email`)
-) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+CREATE TABLE exercicios (
+    id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    nome VARCHAR(40) NOT NULL,
 
---
--- Dumping data for table `usuarios`
---
+    CONSTRAINT pk_exercicios PRIMARY KEY (id),
+    CONSTRAINT uq_exercicios_nome UNIQUE (nome)
+);
 
-LOCK TABLES `usuarios` WRITE;
-/*!40000 ALTER TABLE `usuarios` DISABLE KEYS */;
-INSERT INTO `usuarios` VALUES (1,'Ana','ana@email.com','$2b$10$WbRjyIfWyb6.tcLH86.rcu3UGVLHFlwvjrU1JiQHfdcM.NsOgxWry','2026-11-17 17:47:45'),(2,'Bruno','bruno@email.com','$2b$10$qK9qxGEoKLWoBwSTYOzsj.rhQklyIu9ELY8ccxBik1TRWru/bpvNi','2026-11-17 17:47:45'),(3,'Carla','carla@email.com','$2b$10$lGSgVuubpR/mIFr5YMKp9uM92.MVVMBz96SgGqCiffas65aayOpc2','2026-11-17 17:47:45'),(10,'laura','laura@email.com','$2b$10$wis7xaQe6ALaZOOdEcjr/ulqrcRcAIyJ3tDDk3lZvfQPRbM8hk/7W','2026-11-17 17:50:35'),(12,'julia','julia@email.com','$2b$10$qAqCgQzHLJqthum9hvVp8.R662mxZaI0rogKHm1rV3zmztWJR1m.i','2026-11-17 18:33:44'),(13,'diogo','diogo@email.com','$2b$10$9tyOs7afQda765S0w.ozCeEXElZg5t5wE0iQJo9k.ZdvQdljT8iZ.','2026-11-17 19:35:57');
-/*!40000 ALTER TABLE `usuarios` ENABLE KEYS */;
-UNLOCK TABLES;
-/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
-/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
-/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
-/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
-/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
-/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
-/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+-- ============================================
+-- 4) TABELA: TAREFA_EXERCICIO
+-- Relaciona cada tarefa aos exercícios.
+-- ============================================
 
--- Dump completed on 2026-11-17 20:25:30
+CREATE TABLE tarefa_exercicio (
+    tarefa_id INT UNSIGNED NOT NULL,
+    exercicio_id INT UNSIGNED NOT NULL,
+
+    CONSTRAINT pk_tarefa_exercicio
+        PRIMARY KEY (tarefa_id, exercicio_id),
+
+    CONSTRAINT fk_tarefa_exercicio_tarefa
+        FOREIGN KEY (tarefa_id)
+        REFERENCES tarefas (id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT fk_tarefa_exercicio_exercicio
+        FOREIGN KEY (exercicio_id)
+        REFERENCES exercicios (id)
+        ON DELETE CASCADE
+);
+
+
+-- ============================================
+-- 5) INSERÇÃO DOS USUÁRIOS
+-- ============================================
+
+INSERT INTO usuarios (nome, email, senha_hash) VALUES
+('Ana', 'ana@email.com', '$2b$10$yGSAa/gEq/tG7Wt.Tzto/eedr6AZi.sJayl9I9WCerOOerGPI9fqi'),
+('Bruno', 'bruno@email.com', '$2b$10$8SKHHGou2gRrIMSAgA7bCuOtOojuGqtjuJ6mzNYBpTbF7GSLo0Q76'),
+('Carla', 'carla@email.com', '$2b$10$pMxotPtc/QVx7aiY.9hi/ua81D/gXP0vLilKledT2cTPA7fg4wFBq'),
+('Laura', 'laura@email.com', '$2b$10$.9h55j2DWScLPZ.A2kgOjOKw9dTCbnnK.Gu1syEUKOrgPj/L9Pyp2'),
+('Julia', 'julia@email.com', '$2b$10$AW6Uok8w4Z.L7IJr4qqL3./juXnEypYamo.jK7SX3UQtJkeZCxyL2'),
+('Diogo', 'diogo@email.com', '$2b$10$wbZ75xvh3ZBQkmVMtv/G.udLR2bEiMP9WW8VuWibnbnjZ2rj/c1Ra');
+
+
+-- ============================================
+-- 6) INSERÇÃO DOS EXERCÍCIOS COMPARTILHADOS
+-- ============================================
+
+INSERT INTO exercicios (nome) VALUES
+
+-- Treino de Pernas
+('Agachamento livre'),
+('Leg press'),
+('Cadeira extensora'),
+
+-- Treino de Glúteos
+('Stiff'),
+('Agachamento búlgaro'),
+('Elevação pélvica'),
+
+-- Treino de Cardio
+('Corrida'),
+('Bicicleta'),
+('Esteira'),
+
+-- Treino de Braços
+('Rosca direta'),
+('Tríceps com barra'),
+('Rosca martelo'),
+
+-- Treino de Peito
+('Supino'),
+('Crucifixo'),
+('Pullover'),
+
+-- Treino de Costas
+('Remada curvada'),
+('Remada baixa'),
+('Puxada alta');
+
+
+-- ============================================
+-- 7) INSERÇÃO DAS 6 TAREFAS PARA CADA USUÁRIO
+-- Total: 36 tarefas
+-- ============================================
+
+INSERT INTO tarefas (usuario_id, titulo, nivel, status)
+VALUES
+
+-- Ana
+(1, 'Treino de Pernas', 'medio', 'planejado'),
+(1, 'Treino de Glúteos', 'facil', 'planejado'),
+(1, 'Treino de Cardio', 'medio', 'planejado'),
+(1, 'Treino de Braços', 'facil', 'planejado'),
+(1, 'Treino de Peito', 'medio', 'planejado'),
+(1, 'Treino de Costas', 'dificil', 'planejado'),
+
+-- Bruno
+(2, 'Treino de Pernas', 'medio', 'planejado'),
+(2, 'Treino de Glúteos', 'facil', 'planejado'),
+(2, 'Treino de Cardio', 'medio', 'planejado'),
+(2, 'Treino de Braços', 'facil', 'planejado'),
+(2, 'Treino de Peito', 'medio', 'planejado'),
+(2, 'Treino de Costas', 'dificil', 'planejado'),
+
+-- Carla
+(3, 'Treino de Pernas', 'medio', 'planejado'),
+(3, 'Treino de Glúteos', 'facil', 'planejado'),
+(3, 'Treino de Cardio', 'medio', 'planejado'),
+(3, 'Treino de Braços', 'facil', 'planejado'),
+(3, 'Treino de Peito', 'medio', 'planejado'),
+(3, 'Treino de Costas', 'dificil', 'planejado'),
+
+-- Laura
+(4, 'Treino de Pernas', 'medio', 'planejado'),
+(4, 'Treino de Glúteos', 'facil', 'planejado'),
+(4, 'Treino de Cardio', 'medio', 'planejado'),
+(4, 'Treino de Braços', 'facil', 'planejado'),
+(4, 'Treino de Peito', 'medio', 'planejado'),
+(4, 'Treino de Costas', 'dificil', 'planejado'),
+
+-- Julia
+(5, 'Treino de Pernas', 'medio', 'planejado'),
+(5, 'Treino de Glúteos', 'facil', 'planejado'),
+(5, 'Treino de Cardio', 'medio', 'planejado'),
+(5, 'Treino de Braços', 'facil', 'planejado'),
+(5, 'Treino de Peito', 'medio', 'planejado'),
+(5, 'Treino de Costas', 'dificil', 'planejado'),
+
+-- Diogo
+(6, 'Treino de Pernas', 'medio', 'planejado'),
+(6, 'Treino de Glúteos', 'facil', 'planejado'),
+(6, 'Treino de Cardio', 'medio', 'planejado'),
+(6, 'Treino de Braços', 'facil', 'planejado'),
+(6, 'Treino de Peito', 'medio', 'planejado'),
+(6, 'Treino de Costas', 'dificil', 'planejado');
+
+
+-- ============================================
+-- 8) RELACIONAMENTO ENTRE TAREFAS E EXERCÍCIOS
+-- Cada usuário terá os mesmos exercícios.
+-- ============================================
+
+INSERT INTO tarefa_exercicio (tarefa_id, exercicio_id)
+VALUES
+
+-- Ana
+(1,1), (1,2), (1,3),
+(2,4), (2,5), (2,6),
+(3,7), (3,8), (3,9),
+(4,10), (4,11), (4,12),
+(5,13), (5,14), (5,15),
+(6,16), (6,17), (6,18),
+
+-- Bruno
+(7,1), (7,2), (7,3),
+(8,4), (8,5), (8,6),
+(9,7), (9,8), (9,9),
+(10,10), (10,11), (10,12),
+(11,13), (11,14), (11,15),
+(12,16), (12,17), (12,18),
+
+-- Carla
+(13,1), (13,2), (13,3),
+(14,4), (14,5), (14,6),
+(15,7), (15,8), (15,9),
+(16,10), (16,11), (16,12),
+(17,13), (17,14), (17,15),
+(18,16), (18,17), (18,18),
+
+-- Laura
+(19,1), (19,2), (19,3),
+(20,4), (20,5), (20,6),
+(21,7), (21,8), (21,9),
+(22,10), (22,11), (22,12),
+(23,13), (23,14), (23,15),
+(24,16), (24,17), (24,18),
+
+-- Julia
+(25,1), (25,2), (25,3),
+(26,4), (26,5), (26,6),
+(27,7), (27,8), (27,9),
+(28,10), (28,11), (28,12),
+(29,13), (29,14), (29,15),
+(30,16), (30,17), (30,18),
+
+-- Diogo
+(31,1), (31,2), (31,3),
+(32,4), (32,5), (32,6),
+(33,7), (33,8), (33,9),
+(34,10), (34,11), (34,12),
+(35,13), (35,14), (35,15),
+(36,16), (36,17), (36,18);
+
+
+-- ============================================
+-- 9) CONSULTAS PARA CONFERÊNCIA
+-- ============================================
+
+SELECT * FROM usuarios;
+
+SELECT * FROM tarefas ORDER BY usuario_id, id;
+
+SELECT * FROM exercicios;
+
+SELECT * FROM tarefa_exercicio ORDER BY tarefa_id;
+
+-- Total de tarefas por usuário
+SELECT usuario_id, COUNT(*) AS total_tarefas
+FROM tarefas
+GROUP BY usuario_id
+ORDER BY usuario_id;
+
+-- Total de exercícios
+SELECT COUNT(*) AS total_exercicios
+FROM exercicios;
+
+-- Total de relacionamentos
+SELECT COUNT(*) AS total_relacionamentos
+FROM tarefa_exercicio;

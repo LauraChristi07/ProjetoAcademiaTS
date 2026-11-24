@@ -27,6 +27,21 @@
 
     <!-- ===== NOVO na Aula 5: a tela de entrada ===== -->
     <section id="tela-entrada" class="entrada">
+
+      <div class="apresentacao">
+    <h2>Bem-vindo!</h2>
+
+    <p>
+        Desenvolvemos este site pensando em tornar sua rotina na academia
+        mais simples e organizada. Nosso objetivo é facilitar o gerenciamento
+        dos seus treinos, permitindo cadastrar exercícios, organizar atividades
+        e acompanhar sua rotina de forma prática.
+    </p>
+</div>
+
+
+<h2>Criar conta</h2>
+
       <form class="formulario" id="form-entrar">
         <h2>Entrar</h2>
         <div class="campo">
@@ -65,6 +80,8 @@
 
     <!-- todo o resto da página (painel, formulário e lista) fica aqui dentro -->
     <main id="tela-app" class="conteudo" hidden>
+            <!-- ===== Progresso dos treinos ===== -->
+      
       <!-- NOVO na Aula 6: o aviso amarelo (o some decide se aparece) -->
       <p id="aviso-urgente" class="aviso aviso--oculto">
         Atenção: há tarefas de nivel dificil pendentes.
@@ -92,7 +109,9 @@
 
       <!-- ===== Formulário de cadastro ===== -->
       <form class="formulario" id="formulario">
+        
         <div class="campo">
+          
           <label class="campo__rotulo" for="titulo">Título</label>
           <input class="campo__entrada" id="titulo" type="text" autocomplete="off" />
         </div>
@@ -107,7 +126,27 @@
         <button class="botao botao--primario" type="submit">Cadastrar</button>
       </form>
       <p class="campo__erro" id="erro" role="alert"></p>
+      <!-- ===== Progresso dos treinos ===== -->
+      <section class="progresso">
+        <div class="progresso__cabecalho">
+          <h2>Meu progresso</h2>
+          <span id="porcentagem-progresso">0%</span>
+        </div>
 
+        <div class="progresso__barra">
+          <div
+            class="progresso__preenchimento"
+            id="barra-progresso"
+            role="progressbar"
+            aria-valuemin="0"
+            aria-valuemax="100"
+            aria-valuenow="0"
+            style="width: 0%"
+          ></div>
+        </div>
+
+        <p id="texto-progresso">0 de 6 treinos concluídos.</p>
+      </section>
       <!-- NOVO na Aula 6: filtros por status e busca por título -->
       <div class="filtros">
         <div class="filtros__grupo" id="filtros-status">
