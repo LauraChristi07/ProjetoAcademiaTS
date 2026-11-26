@@ -24,10 +24,10 @@ Sistema de gerenciamento de treinos desenvolvido com TypeScript, permitindo que 
 
 ## Como executar o projeto
 
-### 1. Clonar o repositório
+### 1. Clonar o repositório branch 7
 
 ```bash
-git clone https://github.com/LauraChristi07/ProjetoAcademiaTS.git
+git clone -b 7 https://github.com/LauraChristi07/ProjetoAcademiaTS.git
 ```
 
 ### 2. Instalar as dependências
@@ -105,7 +105,6 @@ Para executar o AcademiaTS em outro computador, é necessário:
 Depois da importação, configure o `.env` com os dados de conexão do MySQL daquele computador.
 
 ### Executar o sistema
-
 1. Abra o terminal na pasta principal e execute `npm install`.
 2. Entre na pasta `api` e execute `npm install`.
 3. Inicie a API com `npm run dev`.
